@@ -2,5 +2,7 @@
 - I replaced the control board for Maqueen from micro:bit to XIAO-ESP32-S3.
 
 
-schematics 
-https://macsbug.wordpress.com/2021/12/
+- schematics 
+  - https://macsbug.wordpress.com/2021/12/
+- sample driver
+  - https://github.com/kd8bxp/micro-Maqueen-Arduino-Library/blob/master/src/Maqueen.cpp   
