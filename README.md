@@ -3,7 +3,7 @@
 - I replaced the control board for Maqueen from micro:bit to XIAO-ESP32-S3.
 
 for debug<br>
-<img src="assets/node_red_for_debug.png" width=300>
+<img src="assets/node_red_for_debug.png" width=400>
 
 ### references
 - schematics 
