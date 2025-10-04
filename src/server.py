@@ -36,25 +36,37 @@ async def call_tool(name: str, arguments: dict) -> list[types.ContentBlock]:
     
     elif name == "move_forward":
         duration = float(arguments.get("duration", 1.0))
-        result_text = f"Moving forward for {duration} seconds"
+        if duration <= 0:
+            result_text = "Moving forward continuously (until stopped)"
+        else:
+            result_text = f"Moving forward for {duration} seconds"
         print(f"Returning: {result_text}")
         return [types.TextContent(type="text", text=result_text)]
     
     elif name == "move_backward":
         duration = float(arguments.get("duration", 1.0))
-        result_text = f"Moving backward for {duration} seconds"
+        if duration <= 0:
+            result_text = "Moving backward continuously (until stopped)"
+        else:
+            result_text = f"Moving backward for {duration} seconds"
         print(f"Returning: {result_text}")
         return [types.TextContent(type="text", text=result_text)]
     
     elif name == "turn_left":
         duration = float(arguments.get("duration", 1.0))
-        result_text = f"Turning left for {duration} seconds"
+        if duration <= 0:
+            result_text = "Turning left continuously (until stopped)"
+        else:
+            result_text = f"Turning left for {duration} seconds"
         print(f"Returning: {result_text}")
         return [types.TextContent(type="text", text=result_text)]
     
     elif name == "turn_right":
         duration = float(arguments.get("duration", 1.0))
-        result_text = f"Turning right for {duration} seconds"
+        if duration <= 0:
+            result_text = "Turning right continuously (until stopped)"
+        else:
+            result_text = f"Turning right for {duration} seconds"
         print(f"Returning: {result_text}")
         return [types.TextContent(type="text", text=result_text)]
     
@@ -238,3 +250,4 @@ starlette_app = Starlette(
 
 if __name__ == "__main__":
     uvicorn.run(starlette_app, host="0.0.0.0", port=1885)
+)
