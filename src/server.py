@@ -1,14 +1,10 @@
 # server.py
 
 #
-# MCP Server for a Control Maqueen 
+# MCP Server for control Maqueen 
+# this program is executed in docket container in Raspberry Pi
+# start with uv run server.py
 #
-
-#
-# this program execited in docker in Raspberry Pi
-#
-# start with   uv run server.py
-# 
 
 from mcp.server.lowlevel import Server
 import mcp.types as types
@@ -26,7 +22,7 @@ app = Server("maqueen")
 async def call_tool(name: str, arguments: dict) -> list[types.ContentBlock]:
     """ツール呼び出しハンドラ"""
     print(f"call_tool called: name={name}, arguments={arguments}")
-
+    
     if name == "list_tools":
         # ツールリストを返す特殊処理
         tools = await list_tools()
@@ -37,13 +33,36 @@ async def call_tool(name: str, arguments: dict) -> list[types.ContentBlock]:
         result_text = f"Available tools:\n{tools_info}"
         print(f"Returning: {result_text}")
         return [types.TextContent(type="text", text=result_text)]
-
+    
     elif name == "move_forward":
         duration = float(arguments.get("duration", 1.0))
         result_text = f"Moving forward for {duration} seconds"
         print(f"Returning: {result_text}")
         return [types.TextContent(type="text", text=result_text)]
-
+    
+    elif name == "move_backward":
+        duration = float(arguments.get("duration", 1.0))
+        result_text = f"Moving backward for {duration} seconds"
+        print(f"Returning: {result_text}")
+        return [types.TextContent(type="text", text=result_text)]
+    
+    elif name == "turn_left":
+        duration = float(arguments.get("duration", 1.0))
+        result_text = f"Turning left for {duration} seconds"
+        print(f"Returning: {result_text}")
+        return [types.TextContent(type="text", text=result_text)]
+    
+    elif name == "turn_right":
+        duration = float(arguments.get("duration", 1.0))
+        result_text = f"Turning right for {duration} seconds"
+        print(f"Returning: {result_text}")
+        return [types.TextContent(type="text", text=result_text)]
+    
+    elif name == "stop":
+        result_text = "Stopping Maqueen"
+        print(f"Returning: {result_text}")
+        return [types.TextContent(type="text", text=result_text)]
+    
     else:
         raise ValueError(f"Unknown tool: {name}")
 
@@ -61,6 +80,52 @@ async def list_tools() -> list[types.Tool]:
                 },
                 "required": ["duration"]
             }
+        ),
+        types.Tool(
+            name="move_backward",
+            title="Move Backward",
+            description="Moves Maqueen backward",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "duration": {"type": "number", "description": "Duration in seconds"}
+                },
+                "required": ["duration"]
+            }
+        ),
+        types.Tool(
+            name="turn_left",
+            title="Turn Left",
+            description="Turns Maqueen left",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "duration": {"type": "number", "description": "Duration in seconds"}
+                },
+                "required": ["duration"]
+            }
+        ),
+        types.Tool(
+            name="turn_right",
+            title="Turn Right",
+            description="Turns Maqueen right",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "duration": {"type": "number", "description": "Duration in seconds"}
+                },
+                "required": ["duration"]
+            }
+        ),
+        types.Tool(
+            name="stop",
+            title="Stop",
+            description="Stops Maqueen",
+            inputSchema={
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
         )
     ]
 
@@ -71,7 +136,7 @@ async def handle_sse(request: Request):
     print(f"SSE Request received: {request.url}")
     print(f"Method: {request.method}")
     print(f"Headers: {request.headers}")
-
+    
     try:
         async with sse.connect_sse(request.scope, request.receive, request._send) as streams:
             await app.run(streams[0], streams[1], app.create_initialization_options())
@@ -86,28 +151,28 @@ async def handle_post(request: Request):
     print(f"POST Request: {request.url}")
     print(f"Path: {request.url.path}")
     print(f"Headers: {request.headers}")
-
+    
     try:
         body = await request.body()
         print(f"Body: {body}")
-
+        
         # JSON-RPCリクエストをパース
         rpc_request = json.loads(body)
         print(f"Parsed RPC Request: {rpc_request}")
-
+        
         # メソッドに応じて処理を分岐
         method = rpc_request.get("method")
-
+        
         if method == "tools/call":
             params = rpc_request.get("params", {})
             tool_name = params.get("name")
             arguments = params.get("arguments", {})
-
+            
             print(f"Calling tool: {tool_name} with args: {arguments}")
-
+            
             # call_toolを直接呼び出し
             result = await call_tool(tool_name, arguments)
-
+            
             # JSON-RPCレスポンスを作成
             response_data = {
                 "jsonrpc": "2.0",
@@ -121,16 +186,16 @@ async def handle_post(request: Request):
                     ]
                 }
             }
-
+            
             print(f"Response: {response_data}")
             return JSONResponse(content=response_data)
-
+            
         elif method == "tools/list":
             print("Listing tools")
-
+            
             # list_toolsを呼び出し
             tools = await list_tools()
-
+            
             # JSON-RPCレスポンスを作成
             response_data = {
                 "jsonrpc": "2.0",
@@ -145,16 +210,16 @@ async def handle_post(request: Request):
                     ]
                 }
             }
-
+            
             print(f"Response: {response_data}")
             return JSONResponse(content=response_data)
-
+            
         else:
             return JSONResponse(
                 content={"jsonrpc": "2.0", "error": {"code": -32601, "message": "Method not found"}, "id": rpc_request.get("id")},
                 status_code=400
             )
-
+            
     except Exception as e:
         print(f"Error in handle_post: {e}")
         import traceback
