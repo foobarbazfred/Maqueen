@@ -1,4 +1,15 @@
 # server.py
+
+#
+# MCP Server for a Control Maqueen 
+#
+
+#
+# this program execited in docker in Raspberry Pi
+#
+# start with   uv run server.py
+# 
+
 from mcp.server.lowlevel import Server
 import mcp.types as types
 import uvicorn
@@ -15,11 +26,24 @@ app = Server("maqueen")
 async def call_tool(name: str, arguments: dict) -> list[types.ContentBlock]:
     """ツール呼び出しハンドラ"""
     print(f"call_tool called: name={name}, arguments={arguments}")
-    if name == "move_forward":
+
+    if name == "list_tools":
+        # ツールリストを返す特殊処理
+        tools = await list_tools()
+        tools_info = "\n".join([
+            f"- {tool.name}: {tool.description}"
+            for tool in tools
+        ])
+        result_text = f"Available tools:\n{tools_info}"
+        print(f"Returning: {result_text}")
+        return [types.TextContent(type="text", text=result_text)]
+
+    elif name == "move_forward":
         duration = float(arguments.get("duration", 1.0))
         result_text = f"Moving forward for {duration} seconds"
         print(f"Returning: {result_text}")
         return [types.TextContent(type="text", text=result_text)]
+
     else:
         raise ValueError(f"Unknown tool: {name}")
 
@@ -71,8 +95,10 @@ async def handle_post(request: Request):
         rpc_request = json.loads(body)
         print(f"Parsed RPC Request: {rpc_request}")
 
-        # ツール呼び出し
-        if rpc_request.get("method") == "tools/call":
+        # メソッドに応じて処理を分岐
+        method = rpc_request.get("method")
+
+        if method == "tools/call":
             params = rpc_request.get("params", {})
             tool_name = params.get("name")
             arguments = params.get("arguments", {})
@@ -98,6 +124,31 @@ async def handle_post(request: Request):
 
             print(f"Response: {response_data}")
             return JSONResponse(content=response_data)
+
+        elif method == "tools/list":
+            print("Listing tools")
+
+            # list_toolsを呼び出し
+            tools = await list_tools()
+
+            # JSON-RPCレスポンスを作成
+            response_data = {
+                "jsonrpc": "2.0",
+                "id": rpc_request.get("id"),
+                "result": {
+                    "tools": [
+                        {
+                            "name": tool.name,
+                            "description": tool.description,
+                            "inputSchema": tool.inputSchema
+                        } for tool in tools
+                    ]
+                }
+            }
+
+            print(f"Response: {response_data}")
+            return JSONResponse(content=response_data)
+
         else:
             return JSONResponse(
                 content={"jsonrpc": "2.0", "error": {"code": -32601, "message": "Method not found"}, "id": rpc_request.get("id")},
@@ -122,4 +173,3 @@ starlette_app = Starlette(
 
 if __name__ == "__main__":
     uvicorn.run(starlette_app, host="0.0.0.0", port=1885)
-
