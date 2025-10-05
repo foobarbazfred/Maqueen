@@ -8,8 +8,7 @@ for debug<br>
 
 ### Controller for Maqueen
 
-<img src="assets/node_red_for_debug.png" width=400>
-
+<img src="assets/controller_board_for_Maqueen.png" width=600>
 
 ### references
 - schematics 
