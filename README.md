@@ -5,6 +5,11 @@
 for debug<br>
 <img src="assets/node_red_for_debug.png" width=400>
 
+
+### Controller for Maqueen
+
+<img src="assets/controller_board_for_Maqueen.png" width=600>
+
 ### references
 - schematics 
   - https://macsbug.wordpress.com/2021/12/
